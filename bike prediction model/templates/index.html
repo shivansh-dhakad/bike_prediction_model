@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bike Prediction Model</title>
+    <style>
+      body {
+        background-image: url("{{ url_for('static', filename='17973903.jpg') }}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        height: 100vh;
+        margin: 0;
+      }
+      #outerForm {
+        background-color: rgba(70, 65, 65, 0.7);
+        width: 600px;
+        padding: 20px 35px;
+        border: 3px solid rgb(238, 198, 174);
+        border-radius: 10px;
+        margin: 45px auto;
+        color: white;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.6);
+      }
+      h1 {
+        color: rgb(228, 173, 55);
+        font-size: 50px;
+        text-align: center;
+        font-family: sans-serif;
+      }
+      hr {
+        border: 2px dotted #ffffff;
+        width: 90%;
+      }
+
+      label {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 5px;
+        display: block;
+        font-family: sans-serif;
+      }
+
+      input,
+      select {
+        width: 50%;
+        display: block;
+        margin: 5px auto;
+        padding: 5px;
+        border-radius: 5px;
+        border: none;
+        font-size: 16px;
+      }
+      #buttonid {
+        text-align: center;
+        margin-top: 10px;
+      }
+      button {
+        padding: 2px 8px;
+        border: 2px solid rgb(43, 40, 40);
+        font-size: 16px;
+        border-radius: 6px;
+        margin-right: 5px;
+        margin-top: 10px;
+      }
+      #predictPrice:hover {
+        background-color: rgb(64, 64, 230);
+        color: white;
+      }
+      #clearForm:hover {
+        background-color: rgb(231, 59, 59);
+        color: white;
+      }
+      #pricePrediction {
+        height: 120px;
+        border: 3px solid rgb(169, 233, 235);
+        border-radius: 10px;
+        margin-top: 20px;
+        text-align: center;
+      }
+      h3 {
+        color: rgb(247, 128, 43);
+        font-size: 25px;
+        font-family: sans-serif;
+      }
+      #price {
+        color: rgb(79, 209, 209);
+        font-family: sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="window">
+      <div id="outerForm">
+        <div>
+          <h1>Bike Prediction Model</h1>
+        </div>
+        <hr />
+        <div class="feature">
+          <label for="brand">Brand:</label>
+          <select name="brand" id="brand">
+            <option value="">--select Brand--</option>
+          </select>
+        </div>
+
+        <div class="feature">
+          <label for="owner">Ownership:</label>
+          <select name="owner" id="owner">
+            <option value="">--select owner--</option>
+            <option value="First Owner">1st Owner</option>
+            <option value="Second Owner">2nd Owner</option>
+            <option value="Third Owner">3rd Owner</option>
+            <option value="Fourth Owner Or More">4th Owner and other</option>
+          </select>
+        </div>
+
+        <div class="feature">
+          <label for="power">Engine cc:</label>
+          <input type="number" name="power" id="power" />
+        </div>
+
+        <div class="feature">
+          <label for="year">Bike buying year:</label>
+          <input type="number" name="year" id="year" />
+        </div>
+
+        <div class="feature">
+          <label for="kms_driven">Kms Driven:</label>
+          <input type="number" name="kms_driven" id="kms_driven" />
+        </div>
+
+        <div class="feature">
+          <label for="original_price">Original Price:</label>
+          <input type="number" name="original_price" id="original_price" />
+        </div>
+
+        <div id="buttonid">
+          <button id="clearform" onclick="clearbutton()">clear form</button>
+          <button id="predictPrice" onclick="predict()">Predict Price</button>
+        </div>
+
+        <div id="pricePrediction">
+          <h3>Predicted Price</h3>
+          <label for="price" id="price">--</label>
+        </div>
+      </div>
+    </div>
+    <script>
+      async function predict() {
+      
+        const br = document.getElementById("brand").value;
+        const on = document.getElementById("owner").value;
+        const po = document.getElementById("power").value;
+        const yr = document.getElementById("year").value;
+        const km = document.getElementById("kms_driven").value;
+        const op = document.getElementById("original_price").value;
+
+        const data = {
+          brand: br,
+          owner: on,
+          power: po,
+          year: yr,
+          kms_driven: km,
+          original_price: op,
+        };
+
+        try {
+          const response = await fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+
+          const result = await response.json();
+
+          console.log(result);
+          document.getElementById("price").innerHTML =
+            "Rs " + Number(result.prediction).toFixed(2);
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      }
+
+      // clear button funtion
+      function clearbutton() {
+        document.getElementById("brand").value = "";
+        document.getElementById("owner").value = "";
+        document.getElementById("power").value = "";
+        document.getElementById("year").value = "";
+        document.getElementById("kms_driven").value = "";
+        document.getElementById("original_price").value = "";
+      }
+
+      async function loaddata() {
+        const response = await fetch("/load-data", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const brandData = await response.json();
+        const sl = document.getElementById("brand");
+
+        brandData.BrandData.forEach((item) => {
+          const opt = document.createElement("option");
+          opt.value = item;
+          opt.innerHTML = item;
+          sl.appendChild(opt);
+        });
+      }
+
+      loaddata();
+    </script>
+  </body>
+</html>
